@@ -1,7 +1,7 @@
 import http from "node:http";
-import type { Stats } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path/posix";
+import type { Stats } from "node:fs";
 import type { DockerVersion } from "./types/DockerVersion";
 import type { DockerInfo } from "./types/DockerInfo";
 import type { DockerAuthToken } from "./types/DockerAuthToken";
