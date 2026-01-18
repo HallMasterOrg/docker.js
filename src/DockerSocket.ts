@@ -10,11 +10,15 @@ declare interface HttpResponse {
   body: Buffer<ArrayBuffer>;
 }
 
-class DockerAPIHttpError {
+class DockerAPIHttpError extends Error {
   constructor(
     readonly status: number,
     readonly reason?: string,
-  ) {}
+    cause?: unknown,
+  ) {
+    super(reason ?? `Docker API error: ${status}`, { cause });
+    this.name = "DockerAPIHttpError";
+  }
 }
 
 export class DockerSocket {
