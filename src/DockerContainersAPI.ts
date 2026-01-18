@@ -120,7 +120,7 @@ export class DockerContainersAPI {
     name?: string,
     platform?: string, // linux/arm64/v8, linux/amd64, ...
   ): Promise<DockerContainerCreated> {
-    if (name !== undefined && !/[a-zA-Z0-9][a-zA-Z0-9_.-]+/.test(name)) {
+    if (name !== undefined && !/^[a-zA-Z0-9][a-zA-Z0-9_\.-]+$/.test(name)) {
       throw new Error("DockerContainerAPI: Invalid container name");
     }
 
@@ -148,7 +148,7 @@ export class DockerContainersAPI {
   async start(containerId: string, detachKeys?: string) {
     if (
       detachKeys !== undefined &&
-      !/^(?:(ctrl-[a-z@\^\[,_])|[a-z]{1})$/.test(detachKeys)
+      !/^(ctrl-[a-z@\^\[,_]|[a-z])$/.test(detachKeys)
     ) {
       throw new Error("DockerContainersAPI: Invalid detachKeys sequence");
     }
