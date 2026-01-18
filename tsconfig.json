@@ -1,11 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
 
     "declaration": true,
     "declarationMap": true,
+    "sourceMap": true,
+    "inlineSources": false,
+    "inlineSourceMap": false,
+
     "outDir": "dist",
     "rootDir": "src",
 

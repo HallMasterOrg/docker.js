@@ -1,9 +1,10 @@
-import DockerSocket from "./DockerSocket";
-import type { DockerContainerStats } from "./types/DockerContainerStats";
-import type { DockerContainerSumary } from "./types/DockerContainerSummary";
-import type { DockerContainerTop } from "./types/DockerContainerTop";
+import { DockerSocket } from "./DockerSocket.js";
+import type { DockerContainer } from "./types/DockerContainer.js";
+import type { DockerContainerStats } from "./types/DockerContainerStats.js";
+import type { DockerContainerSummary } from "./types/DockerContainerSummary.js";
+import type { DockerContainerTop } from "./types/DockerContainerTop.js";
 
-export default class DockerContainer {
+export class DockerContainersAPI {
   constructor(private readonly dockerSocket: DockerSocket) {}
 
   async list(
@@ -21,7 +22,7 @@ export default class DockerContainer {
       filters: JSON.stringify(options.filters ?? {}),
     };
 
-    return await this.dockerSocket.apiCall<DockerContainerSumary>(
+    return await this.dockerSocket.apiCall<DockerContainerSummary>(
       "GET",
       "/containers/json",
       {

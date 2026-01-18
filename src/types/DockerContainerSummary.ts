@@ -1,4 +1,4 @@
-export interface DockerContainerSumary {
+export interface DockerContainerSummary {
   Id: string;
   Names: string[];
   Image: string;

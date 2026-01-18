@@ -1,24 +1,10 @@
-import DockerContainer from "./DockerContainer";
-import DockerSocket from "./DockerSocket";
+export type { DockerAuthToken } from "./types/DockerAuthToken.js";
+export type { DockerContainer } from "./types/DockerContainer.js";
+export type { DockerContainerStats } from "./types/DockerContainerStats.js";
+export type { DockerContainerSummary } from "./types/DockerContainerSummary.js";
+export type { DockerContainerTop } from "./types/DockerContainerTop.js";
+export type { DockerInfo } from "./types/DockerInfo.js";
+export type { DockerVersion } from "./types/DockerVersion.js";
 
-(async function () {
-  const socket = new DockerSocket();
-
-  await socket.init();
-
-  // await socket.authenticate(
-  //   "ghcr.io",
-  //   "github_username",
-  //   "github_pat",
-  // );
-  // console.log(socket.token);
-
-  // console.log(await socket.info());
-
-  const containersApi = new DockerContainer(socket);
-  const containersSummary = await containersApi.stats("XXX", {
-    stream: false,
-    oneShot: true,
-  });
-  console.log(containersSummary);
-})();
+export { DockerSocket } from "./DockerSocket.js";
+export { DockerContainersAPI } from "./DockerContainersAPI.js";

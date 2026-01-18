@@ -73,7 +73,7 @@ export declare interface RegistryConfig {
   Mirrors: any;
 }
 
-export declare interface IndexConfigs extends Record<string, IndexCOnfig> {}
+export declare interface IndexConfigs extends Record<string, IndexConfig> {}
 
 export declare interface IndexConfig {
   Mirrors: any[];

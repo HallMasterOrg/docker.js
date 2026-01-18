@@ -1,17 +1,16 @@
 import http from "node:http";
 import fs from "node:fs/promises";
-import path from "node:path/posix";
 import type { Stats } from "node:fs";
-import type { DockerVersion } from "./types/DockerVersion";
-import type { DockerInfo } from "./types/DockerInfo";
-import type { DockerAuthToken } from "./types/DockerAuthToken";
+import type { DockerVersion } from "./types/DockerVersion.js";
+import type { DockerInfo } from "./types/DockerInfo.js";
+import type { DockerAuthToken } from "./types/DockerAuthToken.js";
 
 declare interface HttpResponse {
   response: http.IncomingMessage;
   body: Buffer<ArrayBuffer>;
 }
 
-export default class DockerSocket {
+export class DockerSocket {
   private dockerSocketPath: string;
 
   private dockerVersion: DockerVersion | null = null;
