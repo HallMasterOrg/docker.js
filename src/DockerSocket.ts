@@ -190,13 +190,29 @@ export class DockerSocket {
       body?: string | Buffer | DataView | Readable;
       query?: Record<string, string | string[] | undefined>;
     },
+    auth?: { identitytoken: string } | DockerRegistryCredential,
   ): Promise<T> {
     const { ApiVersion } = this.version;
+
+    const headers = options?.headers ?? {};
+    if (auth !== undefined) {
+      if ("identitytoken" in auth) {
+        headers["X-Registry-Auth"] = auth.identitytoken;
+      } else {
+        headers["X-Registry-Auth"] = Buffer.from(JSON.stringify(auth)).toString(
+          "base64",
+        );
+      }
+    }
 
     const response = await this.request(
       method,
       `/v${ApiVersion}/${urlPath.replace(/^\//, "")}`,
-      options,
+      {
+        body: options?.body,
+        headers: headers,
+        query: options?.query,
+      },
     );
 
     const responseBody = response.body.toString("utf-8");

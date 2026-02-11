@@ -141,10 +141,9 @@ export class DockerImagesAPI {
       "Content-Type": "application/x-tar",
     };
     if (Object.keys(registryConfig).length > 0) {
-      const rawRegistryConfig = Buffer.from(
+      headers["X-Registry-Config"] = Buffer.from(
         JSON.stringify(registryConfig),
       ).toString("base64");
-      headers["X-Registry-Config"] = rawRegistryConfig;
     }
 
     await this.dockerSocket.apiCall<void>("POST", "/build", {
@@ -214,19 +213,13 @@ export class DockerImagesAPI {
       platform: options.platform ? JSON.stringify(options.platform) : undefined,
     };
 
-    const token = Buffer.from(JSON.stringify(options.auth ?? {})).toString(
-      "base64url",
-    );
-
     await this.dockerSocket.apiCall<string>(
       "POST",
       `/images/${imageName}/push`,
       {
         query: apiOptions,
-        headers: {
-          "X-Registry-Auth": token,
-        },
       },
+      options?.auth,
     );
   }
 
@@ -275,11 +268,6 @@ export class DockerImagesAPI {
     };
 
     const headers: Record<string, string> = {};
-    if (options.auth) {
-      headers["X-Registry-Auth"] = Buffer.from(
-        JSON.stringify(options.auth),
-      ).toString("base64url");
-    }
 
     if (options.inputImage) {
       headers["Content-Type"] =
@@ -288,10 +276,15 @@ export class DockerImagesAPI {
           : "application/octet-stream";
     }
 
-    await this.dockerSocket.apiCall<void>("POST", "/images/create", {
-      headers,
-      body: options.inputImage,
-      query: apiOptions,
-    });
+    await this.dockerSocket.apiCall<void>(
+      "POST",
+      "/images/create",
+      {
+        headers,
+        body: options.inputImage,
+        query: apiOptions,
+      },
+      options?.auth,
+    );
   }
 }
