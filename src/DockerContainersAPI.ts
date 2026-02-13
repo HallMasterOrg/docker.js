@@ -80,13 +80,31 @@ export class DockerContainersAPI {
       tail: (options?.tail ?? "all").toString(),
     };
 
-    return await this.dockerSocket.apiCall<string>(
+    const buffer = await this.dockerSocket.bufferApiCall(
       "GET",
       `/containers/${containerId}/logs`,
       {
         query: apiOptions,
       },
     );
+
+    return DockerContainersAPI.demuxDockerStream(buffer);
+  }
+
+  private static demuxDockerStream(buffer: Buffer): string {
+    let offset = 0;
+    const chunks: string[] = [];
+
+    while (offset + 8 <= buffer.length) {
+      const size = buffer.readUInt32BE(offset + 4);
+      offset += 8;
+
+      if (offset + size > buffer.length) break;
+      chunks.push(buffer.subarray(offset, offset + size).toString("utf-8"));
+      offset += size;
+    }
+
+    return chunks.join("");
   }
 
   async stats(
