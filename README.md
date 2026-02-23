@@ -6,6 +6,9 @@ out [right here](https://github.com/hallmasterorg/hallmaster).
 It is a library used to manipulate Docker containers, images and all interfaces
 that can be managed by the Docker Engine.
 
+Zero dependency, no usage of shell calls, everything implemented in the finest
+manner and in the most secure way possible.
+
 ## How to use
 
 The entrypoint of this library is the `DockerSocket` object. It has to be
