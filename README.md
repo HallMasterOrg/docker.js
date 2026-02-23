@@ -1,8 +1,5 @@
 # Docker.js
 
-This repository is heavily used for the Hallmaster project, that you can check
-out [right here](https://github.com/hallmasterorg/hallmaster).
-
 It is a library used to manipulate Docker containers, images and all interfaces
 that can be managed by the Docker Engine.
 
