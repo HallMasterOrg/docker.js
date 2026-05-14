@@ -47,9 +47,9 @@ function sleep(ms: number): Promise<void> {
   });
 
   stream.on("data", (log) => {
-    const prefix =
-      log.stream === "STDERR" ? "[STDERR]" : "[STDOUT]";
-    process.stdout.write(`[${prefix}] ${log.content}`);
+    const prefix = log.stream === "STDERR" ? "[STDERR]" : "[STDOUT]";
+    const ts = log.timestamp ? `[${log.timestamp}] ` : "";
+    process.stdout.write(`${ts}${prefix} ${log.content}`);
   });
 
   stream.on("error", (err) => {

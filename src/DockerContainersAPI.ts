@@ -121,6 +121,22 @@ export class DockerContainersAPI {
     return DockerContainersAPI.demuxDockerStream(buffer);
   }
 
+  // Docker prepends an RFC3339Nano timestamp followed by a single space to each
+  // line when `timestamps: true` is requested.
+  private static readonly TIMESTAMP_RE =
+    /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z) (.*)$/s;
+
+  private static splitTimestamp(raw: string): {
+    content: string;
+    timestamp?: string;
+  } {
+    const match = DockerContainersAPI.TIMESTAMP_RE.exec(raw);
+    if (match) {
+      return { timestamp: match[1], content: match[2] };
+    }
+    return { content: raw };
+  }
+
   private static createDemuxTransform(): Transform {
     let buffer = Buffer.alloc(0);
 
@@ -134,12 +150,15 @@ export class DockerContainersAPI {
           const frameSize = buffer.readUInt32BE(4);
           if (buffer.length < 8 + frameSize) break;
 
-          const content = buffer.subarray(8, 8 + frameSize).toString("utf-8");
+          const raw = buffer.subarray(8, 8 + frameSize).toString("utf-8");
           buffer = buffer.subarray(8 + frameSize);
+
+          const { content, timestamp } = DockerContainersAPI.splitTimestamp(raw);
 
           this.push({
             content,
             stream: streamType === 2 ? "STDERR" : "STDOUT",
+            timestamp,
           } satisfies DockerContainerLog);
         }
 
@@ -158,10 +177,12 @@ export class DockerContainersAPI {
       offset += 8;
 
       if (offset + size > buffer.length) break;
-      const chunk = buffer.subarray(offset, offset + size).toString("utf-8");
+      const raw = buffer.subarray(offset, offset + size).toString("utf-8");
+      const { content, timestamp } = DockerContainersAPI.splitTimestamp(raw);
       logs.push({
-        content: chunk,
+        content,
         stream: isStderr ? "STDERR" : "STDOUT",
+        timestamp,
       });
       offset += size;
     }
