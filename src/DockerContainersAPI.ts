@@ -172,7 +172,7 @@ export class DockerContainersAPI {
     const logs: DockerContainerLog[] = [];
 
     while (offset + 8 <= buffer.length) {
-      const isStderr = buffer[offset] === 1;
+      const streamType = buffer[offset];
       const size = buffer.readUInt32BE(offset + 4);
       offset += 8;
 
@@ -181,7 +181,7 @@ export class DockerContainersAPI {
       const { content, timestamp } = DockerContainersAPI.splitTimestamp(raw);
       logs.push({
         content,
-        stream: isStderr ? "STDERR" : "STDOUT",
+        stream: streamType === 2 ? "STDERR" : "STDOUT",
         timestamp,
       });
       offset += size;

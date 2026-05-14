@@ -288,6 +288,65 @@ export class DockerImagesAPI {
     );
   }
 
+  async verify(options: {
+    fromImage: string;
+    tag?: string;
+    platform?: string;
+    auth?: { identitytoken: string } | DockerRegistryCredential;
+  }): Promise<void> {
+    const apiOptions: Record<string, string | undefined> = {
+      fromImage: options.fromImage,
+      tag: options.tag,
+      platform: options.platform,
+    };
+
+    const stream = await this.dockerSocket.streamAPICall(
+      "POST",
+      "/images/create",
+      {
+        query: apiOptions,
+      },
+      options.auth,
+    );
+
+    try {
+      let buffer = "";
+      for await (const chunk of stream) {
+        buffer += (chunk as Buffer).toString("utf-8");
+        let newlineIdx: number;
+        while ((newlineIdx = buffer.indexOf("\n")) >= 0) {
+          const line = buffer.slice(0, newlineIdx).trim();
+          buffer = buffer.slice(newlineIdx + 1);
+          if (!line) continue;
+
+          const message = JSON.parse(line) as {
+            status?: string;
+            error?: string;
+            errorDetail?: { message?: string };
+          };
+
+          if (message.error || message.errorDetail) {
+            throw new Error(
+              message.error ??
+                message.errorDetail?.message ??
+                "Unknown error from the Docker daemon.",
+            );
+          }
+
+          // "Pulling from <repo>" line means the registry accepted us and the image exists.
+          if (
+            typeof message.status === "string" &&
+            message.status.startsWith("Pulling from")
+          ) {
+            return;
+          }
+        }
+      }
+    } finally {
+      stream.destroy();
+    }
+  }
+
   async get(
     imageName: string, // registry.example.com/myimage, don't provide a tag here
     options: {
