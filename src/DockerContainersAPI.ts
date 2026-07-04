@@ -192,20 +192,37 @@ export class DockerContainersAPI {
 
   async stats(
     containerId: string,
-    options:
-      | { stream: true; oneShot?: false }
-      | {
-          stream: false;
-          oneShot?: boolean;
-        } = {
-      stream: true,
+    options: { stream: true },
+  ): Promise<Readable>;
+  async stats(
+    containerId: string,
+    options?: { stream?: false; oneShot?: boolean },
+  ): Promise<DockerContainerStats>;
+  async stats(
+    containerId: string,
+    options: { stream?: boolean; oneShot?: boolean } = {
+      stream: false,
       oneShot: false,
     },
-  ) {
+  ): Promise<Readable | DockerContainerStats> {
     const apiOptions: Record<string, string> = {
-      stream: (options.stream ?? true).toString(),
-      "one-shot": (options.oneShot ?? false).toString(),
+      stream: (options.stream ?? false).toString(),
+      "one-shot": (!options.stream && (options.oneShot ?? false)).toString(),
     };
+
+    if (options.stream) {
+      const raw = await this.dockerSocket.streamAPICall(
+        "GET",
+        `/containers/${containerId}/stats`,
+        { query: apiOptions },
+      );
+
+      const parser = DockerContainersAPI.createStatsTransform();
+      raw.pipe(parser);
+      raw.on("error", (err) => parser.destroy(err));
+
+      return parser;
+    }
 
     return await this.dockerSocket.apiCall<DockerContainerStats>(
       "GET",
@@ -214,6 +231,32 @@ export class DockerContainersAPI {
         query: apiOptions,
       },
     );
+  }
+
+  private static createStatsTransform(): Transform {
+    let buffer = "";
+
+    return new Transform({
+      objectMode: true,
+      transform(chunk: Buffer, _encoding, callback) {
+        buffer += chunk.toString("utf-8");
+
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          if (line.length === 0) continue;
+
+          try {
+            this.push(JSON.parse(line) as DockerContainerStats);
+          } catch {
+            // ignore bad frames
+          }
+        }
+
+        callback();
+      },
+    });
   }
 
   async create(

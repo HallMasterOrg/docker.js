@@ -86,6 +86,20 @@ async function sleep(ms: number): Promise<void> {
   console.log(logs);
   console.log("--- REDIS TEST CONTAINER LOGS END ---");
 
+  const oneShotStats = await dockerContainersApi.stats(createdContainer.Id, {
+    stream: false,
+  });
+  console.log(oneShotStats.memory_stats.usage);
+
+  const statsStream = await dockerContainersApi.stats(createdContainer.Id, {
+    stream: true,
+  });
+  statsStream.on("data", (stats) => {
+    console.log(`cpu=${stats.cpu_stats.cpu_usage.total_usage}`);
+  });
+  await sleep(5000);
+  statsStream.destroy();
+
   console.log("Killing test container");
   await dockerContainersApi.kill(createdContainer.Id);
   console.log("Test container killed");
